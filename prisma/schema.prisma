@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model BusinessEvent {
+  id          String   @id @default(cuid())
+  eventType   String
+  aggregateId String
+  payload     Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([aggregateId])
+  @@index([eventType])
+}
+
+model OutboxEvent {
+  id          Int       @id @default(autoincrement())
+  aggregateId String
+  eventType   String
+  payload     Json
+  status      String    @default("pending")
+  attempts    Int       @default(0)
+  error       String?
+  createdAt   DateTime  @default(now())
+  sentAt      DateTime?
+
+  @@unique([aggregateId, eventType])
+  @@index([status, createdAt])
+}
